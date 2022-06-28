@@ -16,50 +16,52 @@
 
 #### 安装教程
 
-`composer require icy8/queue`
+`````shell
+composer require icy8/queue
+`````
 
 #### 使用说明
 
 1. 监听/消费任务
 
-因为`think-queue`的消费进程是基于`think`命令的，我们并不希望把`thinkphp`的其他依赖牵扯进来。
+   因为`think-queue`的消费进程是基于`think`命令的，我们并不希望把`thinkphp`的其他依赖牵扯进来。
 
-所以定制了一个可以自定义消费进程的方法`makeProcess`，他可以让你调用任何php进程来消费任务，方法参数只接受`string`和`Process`对象。
+   所以定制了一个可以自定义消费进程的方法`makeProcess`，他可以让你调用任何php进程来消费任务，方法参数只接受`string`和`Process`对象。
 
-```php
-<?php
-
-use icy8\Queue\Listener;
-use Symfony\Component\Process\PhpProcess;
-
-include __DIR__ . "/../../../../autoload.php";
-$listener = new Listener();
-// 进程调度间隔 单位秒 默认是1秒 允许小数
-$listener->execInterval = '0.1';
-// 定制自己的消费进程
-/*$listener->makeProcess('<?php
-// 为redis配置密码
-$exec = new \icy8\Queue\Executor("redis", ["port"=>"6399", "password"=>"123456"]);
-$exec->runNext();');*/
-// 开始监听队列
-$listener->run();
-```
+   ```php
+   <?php
+   
+   use icy8\Queue\Listener;
+   use Symfony\Component\Process\PhpProcess;
+   
+   include __DIR__ . "/../../../../autoload.php";
+   $listener = new Listener();
+   // 进程调度间隔 单位秒 默认是1秒 允许小数
+   $listener->execInterval = '0.1';
+   // 定制自己的消费进程
+   /*$listener->makeProcess('<?php
+   // 为redis配置密码
+   $exec = new \icy8\Queue\Executor("redis", ["port"=>"6399", "password"=>"123456"]);
+   $exec->runNext();');*/
+   // 开始监听队列
+   $listener->run();
+   ```
 
 2. 发布任务
 
-```php
-<?php
-
-include __DIR__ . "/../../../../autoload.php";
-$connection = new \icy8\Queue\connector\Redis();
-$connection->init();
-// 任务立即执行
-$connection->push(\icy8\Queue\test\JobTest::class, ['a', 'b', 'c']);
-// 运行任务类的自定义方法
-$connection->push([\icy8\Queue\test\JobTest::class, 'custom'], '自定义方法');
-// 延迟任务
-$connection->pushDelay(\icy8\Queue\test\JobTest::class, ['a', 'b', 'c'], 3);
-```
+   ```php
+   <?php
+   
+   include __DIR__ . "/../../../../autoload.php";
+   $connection = new \icy8\Queue\connector\Redis();
+   $connection->init();
+   // 任务立即执行
+   $connection->push(\icy8\Queue\test\JobTest::class, ['a', 'b', 'c']);
+   // 运行任务类的自定义方法
+   $connection->push([\icy8\Queue\test\JobTest::class, 'custom'], '自定义方法');
+   // 延迟任务
+   $connection->pushDelay(\icy8\Queue\test\JobTest::class, ['a', 'b', 'c'], 3);
+   ```
 
 3. 其他说明
 

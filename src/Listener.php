@@ -59,7 +59,7 @@ class Listener
             $this->process = $process;
         } else if (is_string($process)) {
             if ($this->makeAutoload) {
-                $process .= $this->makeAutoloadCode();
+                $process = $this->makeAutoloadCode() . $process;
             }
             $this->process = new PhpProcess($process, $cwd);
         }

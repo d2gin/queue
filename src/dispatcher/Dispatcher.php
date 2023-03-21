@@ -14,6 +14,7 @@ abstract class Dispatcher
     protected $instance;
     protected $failed  = false;
     protected $deleted = false;
+    protected $_data   = [];//
 
     public function __construct($connector, $raw, $queue)
     {
@@ -116,6 +117,16 @@ abstract class Dispatcher
     public function getId()
     {
         return $this->id;
+    }
+
+    public function __set($name, $value)
+    {
+        $this->_data[$name] = $value;
+    }
+
+    public function __get($name)
+    {
+        return $this->_data[$name];
     }
 
 }

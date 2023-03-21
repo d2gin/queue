@@ -26,20 +26,22 @@ class Queue
     /**
      * @param $job
      * @param string $data
+     * @param int $maxTries
      */
-    public function push($job, $data = '')
+    public function push($job, $data = '', $maxTries = 0)
     {
-        $this->connector->push($job, $data);
+        $this->connector->push($job, $data, $maxTries);
     }
 
     /**
      * @param $deley
      * @param $job
-     * @param $data
+     * @param string $data
+     * @param int $maxTries
      */
-    public function delay($deley, $job, $data='')
+    public function delay($deley, $job, $data = '', $maxTries = 0)
     {
         // @todo $deley参数可能会带来歧义，但对$data可选操作会更友好
-        $this->connector->pushDelay($job, $data, $deley);
+        $this->connector->pushDelay($job, $data, $deley, $maxTries);
     }
 }

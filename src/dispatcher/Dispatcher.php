@@ -36,6 +36,9 @@ abstract class Dispatcher
         $data    = $payload['data'];
         [$this->instance, $method] = $this->resolveJob($job);
         if ($this->instance) {
+            if (method_exists($this->instance, 'onStart')) {
+                $this->instance->onStart($this, $data);
+            }
             $this->instance->{$method}($this, $data);
         }
     }

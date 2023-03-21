@@ -1,6 +1,6 @@
 <?php
 
-namespace icy8\queue;
+namespace icy8\Queue;
 class Output
 {
     public function writeln($msg)

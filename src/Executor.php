@@ -3,11 +3,9 @@
 namespace icy8\Queue;
 
 use icy8\Queue\connector\Connector;
-use icy8\Queue\connector\Redis;
 use icy8\Queue\dispatcher\Dispatcher;
 use icy8\Queue\exception\JobExpiredException;
 use icy8\Queue\exception\MaxTriedExceedException;
-use Symfony\Component\Process\PhpProcess;
 
 /**
  * 队列消费

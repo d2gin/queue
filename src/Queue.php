@@ -1,6 +1,6 @@
 <?php
 
-namespace icy8\queue;
+namespace icy8\Queue;
 
 use icy8\Queue\connector\Connector;
 

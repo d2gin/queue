@@ -37,11 +37,17 @@ abstract class Dispatcher
         [$this->instance, $method] = $this->resolveJob($job);
         if ($this->instance) {
             if (method_exists($this->instance, 'onStart')) {
-                $this->instance->onStart($this, $data);
+                try {
+                    $this->instance->onStart($this, $data);
+                } catch (\Throwable $e) {
+                }
             }
             $this->instance->{$method}($this, $data);
             if (method_exists($this->instance, 'onFinish')) {
-                $this->instance->onFinish($this, $data);
+                try {
+                    $this->instance->onFinish($this, $data);
+                } catch (\Throwable $e) {
+                }
             }
         }
     }
@@ -56,10 +62,16 @@ abstract class Dispatcher
         $this->failed = true;
         if (method_exists($this->instance, 'onFail')) {
             $payload = $this->payload();
-            $this->instance->onFail($this, $payload['data'], $e);
+            try {
+                $this->instance->onFail($this, $payload['data'], $e);
+            } catch (\Throwable $e) {
+            }
         }
         if (method_exists($this->instance, 'onFinish')) {
-            $this->instance->onFinish($this, $payload['data']);
+            try {
+                $this->instance->onFinish($this, $payload['data']);
+            } catch (\Throwable $e) {
+            }
         }
     }
 

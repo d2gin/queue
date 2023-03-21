@@ -97,7 +97,8 @@ abstract class Dispatcher
 
     protected function resolveJob($job)
     {
-        list($class, $method) = array_values($job);
+        $class  = $job[0] ?? null;
+        $method = $job[1] ?? null;
         if (!class_exists($class)) {
             throw new \Exception('`job` class not found');
         }

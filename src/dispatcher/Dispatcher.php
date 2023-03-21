@@ -40,6 +40,9 @@ abstract class Dispatcher
                 $this->instance->onStart($this, $data);
             }
             $this->instance->{$method}($this, $data);
+            if (method_exists($this->instance, 'onFinish')) {
+                $this->instance->onFinish($this, $data);
+            }
         }
     }
 
@@ -54,6 +57,9 @@ abstract class Dispatcher
         if (method_exists($this->instance, 'onFail')) {
             $payload = $this->payload();
             $this->instance->onFail($this, $payload['data'], $e);
+        }
+        if (method_exists($this->instance, 'onFinish')) {
+            $this->instance->onFinish($this, $payload['data']);
         }
     }
 

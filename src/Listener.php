@@ -2,7 +2,7 @@
 
 namespace icy8\Queue;
 
-use icy8\Queue\connector\Redis;
+use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\PhpProcess;
 use Symfony\Component\Process\Process;
 
@@ -18,33 +18,43 @@ class Listener
 
     public function run($driver = 'redis')
     {
-        /* @var $process */
+        /* @var Process $process */
         $process = $this->process;
         if (!$process) {
             $process = $this->defaultProcess($driver);
         }
         while (true) {
             if ($process->isRunning()) continue;
-            $process->run();
-            $output = $process->getOutput();
-            echo $output;
-            $process->stop();
-            if ($this->execInterval < 1) {
+            try {
+                $process->run();
+                $output = $process->getOutput();
+                echo $output;
+                $process->stop();
+            } catch (\Exception $e) {
+                echo "[listener] " . $e->getMessage() . PHP_EOL;
+            }
+            if ($this->execInterval <= 0) {
+                continue;
+            } else {
+                // 支持小数
                 usleep(intval($this->execInterval * 1000000));
-            } else sleep($this->execInterval);
+            }
         }
     }
 
     /**
      * 默认的队列消费进程
      * @param $driver
-     * @return PhpProcess
+     * @param mixed $cwd
+     * @return Process
      */
     protected function defaultProcess($driver, $cwd = null)
     {
-        $stub = file_get_contents(__DIR__ . '/stub/command/' . $driver . '.queue.php');
-        $stub = $this->makeAutoloadCode() . $stub;
-        return new PhpProcess($stub, $cwd);
+        $command          = __DIR__ . '/stub/command/' . $driver . '.queue.php';
+        $executableFinder = new PhpExecutableFinder();
+        $php              = $executableFinder->find(false);
+        $php              = false === $php ? null : array_merge([$php], $executableFinder->findArguments());
+        return new Process([$php, $command], $cwd);
     }
 
     /**

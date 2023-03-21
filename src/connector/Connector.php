@@ -6,7 +6,7 @@ use icy8\Queue\exception\InvalidPayloadException;
 
 abstract class Connector
 {
-    protected $retryInterval = 2;
+    protected $retryInterval = 1;// 默认1秒后重试
     protected $config        = [];
 
     public function __construct()
@@ -15,7 +15,14 @@ abstract class Connector
 
     abstract public function pop();
 
-    abstract public function push($job, $data = '', $queue = null);
+    abstract public function pushRaw($payload, $queue = null);
+
+    public function push($job, $data = '', $maxTries = 0, $queue = null)
+    {
+        $payload_json = $this->createPayload($job, $data, $maxTries);
+        $this->pushRaw($payload_json, $queue);
+    }
+
 
     abstract public function pushDelayRaw($payload, $delay, $queue = null);
 
@@ -33,19 +40,19 @@ abstract class Connector
     protected function createPayloadArray($job, $data = '', $maxTries = 0)
     {
         if (is_array($job) && count($job) !== 2) {
-            throw new InvalidPayloadException('job must be an array as [classname, method]');
+            throw new InvalidPayloadException('`job` must be an array as [classname, method]');
         } else if (!is_array($job) && !is_string($job)) {
-            throw new InvalidPayloadException('unknown job to point');
+            throw new InvalidPayloadException('unknown `job` to point');
         }
         return [
+            'id'                => uniqid('queue:'),
             'job'               => is_string($job) ? [$job] : $job,
             'data'              => $data,
             'retried_times'     => 0,
             'max_retried_times' => $maxTries,
-            'expire_at'         => 0,
+            'expire_at'         => 0,// @todo 暂不支持任务过期配置
         ];
     }
-
 
     protected function createPayload($job, $data, $maxTries = 0)
     {
@@ -59,6 +66,7 @@ abstract class Connector
 
     /**
      * @param array $config
+     * @return Connector
      */
     public function setConfig($config)
     {

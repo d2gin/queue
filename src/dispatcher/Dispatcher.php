@@ -1,11 +1,15 @@
 <?php
 
 namespace icy8\Queue\dispatcher;
+
+use icy8\Queue\connector\Connector;
+
 abstract class Dispatcher
 {
     protected $id;
     protected $raw;
     protected $queue;
+    /* @var Connector $connector */
     protected $connector;
     protected $instance;
     protected $failed  = false;
@@ -74,11 +78,28 @@ abstract class Dispatcher
         return $this->payload()['max_retried_times'] ?? null;
     }
 
+    /**
+     * 重新发布当前任务
+     * @param mixed $delay
+     */
+    public function republish($delay = null)
+    {
+        $payload = $this->payload();
+        // 重置重试次数
+        $payload['retried_times'] = 0;
+        //
+        $method = 'pushRaw';
+        if ($delay) {
+            $method = 'pushDelayRaw';
+        }
+        $this->connector->{$method}(json_encode($payload));
+    }
+
     protected function resolveJob($job)
     {
         list($class, $method) = array_values($job);
         if (!class_exists($class)) {
-            throw new \Exception('job class not found');
+            throw new \Exception('`job` class not found');
         }
         $method   = $method ?: 'handle';
         $instance = new $class;

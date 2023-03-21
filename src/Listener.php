@@ -40,7 +40,7 @@ class Listener
      * @param $driver
      * @return PhpProcess
      */
-    protected function defaultProcess($driver)
+    protected function defaultProcess($driver, $cwd = null)
     {
         $stub = file_get_contents(__DIR__ . '/stub/command/' . $driver . '.queue.php');
         $stub = $this->makeAutoloadCode() . $stub;

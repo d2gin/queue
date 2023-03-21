@@ -46,11 +46,11 @@ abstract class Dispatcher
 
     public function fail(\Throwable $e)
     {
+        $this->failed = true;
         if (method_exists($this->instance, 'onFail')) {
             $payload = $this->payload();
             $this->instance->onFail($this, $payload['data'], $e);
         }
-        $this->failed = true;
     }
 
     public function isFail()

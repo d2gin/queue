@@ -8,7 +8,6 @@ abstract class Dispatcher
 {
     protected $id;
     protected $raw;
-    protected $queue;
     /* @var Connector $connector */
     protected $connector;
     protected $instance;
@@ -16,9 +15,8 @@ abstract class Dispatcher
     protected $deleted = false;
     protected $_data   = [];//
 
-    public function __construct($connector, $raw, $queue)
+    public function __construct($connector, $raw)
     {
-        $this->queue     = $queue;
         $this->raw       = $raw;
         $this->connector = $connector;
         $this->id        = uniqid('queue:');
@@ -111,10 +109,9 @@ abstract class Dispatcher
         $payload['retried_times'] = 0;
         //
         $method = 'pushRaw';
-        if ($delay) {
-            $method = 'pushDelayRaw';
-        }
-        $this->connector->{$method}(json_encode($payload));
+        $delay && $method = 'pushDelayRaw';
+        $params = array_filter([json_encode($payload), $delay]);
+        call_user_func_array([$this->connector, $method], $params);
     }
 
     protected function resolveJob($job)

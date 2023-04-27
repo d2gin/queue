@@ -55,21 +55,19 @@ class Redis extends Connector
 
     /**
      * @param $payload
-     * @param null $queue
      */
-    public function pushRaw($payload, $queue = null)
+    public function pushRaw($payload)
     {
-        $this->redis->rPush($this->queueName($queue), $payload);
+        $this->redis->rPush($this->queueName(), $payload);
     }
 
     /**
      * @param $payload
      * @param $delay
-     * @param null $queue
      */
-    public function pushDelayRaw($payload, $delay, $queue = null)
+    public function pushDelayRaw($payload, $delay)
     {
-        $this->redis->zAdd($this->queueName($queue) . ':delay', $this->availableAt($delay), $payload);
+        $this->redis->zAdd($this->queueName() . ':delay', $this->availableAt($delay), $payload);
     }
 
     /**
@@ -88,7 +86,7 @@ class Redis extends Connector
         $reserved['retried_times']++;
         $reserved = json_encode($reserved);
         $this->redis->zAdd($this->queueName() . ':reserved', $this->availableAt($this->retryInterval), $reserved);
-        return new RedisDispatcher($this, $payload, $this->defaultName, $reserved);
+        return new RedisDispatcher($this, $payload, $reserved);
     }
 
     /**
@@ -104,18 +102,18 @@ class Redis extends Connector
 
     /**
      * 合并延时任务
-     * @param $queue
+     * @param $queueKey
      */
-    protected function mergeDelayJobs($queue)
+    protected function mergeDelayJobs($queueKey)
     {
-        $this->redis->watch($queue);
+        $this->redis->watch($queueKey);
         // 提取分数小于当前时间的集合
         // 即把所有到时间执行的任务推入redis队列中执行
-        $jobs = $this->redis->zRangeByScore($queue, '-inf', time());
+        $jobs = $this->redis->zRangeByScore($queueKey, '-inf', time());
         if (!empty($jobs)) {
-            $this->transaction(function () use ($queue, $jobs) {
+            $this->transaction(function () use ($queueKey, $jobs) {
                 // 把对应的任务从集合中删除，结合上面代码可以理解为数据出栈
-                $this->redis->zRemRangeByRank($queue, 0, count($jobs) - 1);
+                $this->redis->zRemRangeByRank($queueKey, 0, count($jobs) - 1);
                 // 一批100个任务入栈队列中
                 $chunk = array_chunk($jobs, 100);
                 foreach ($chunk as $list) {
@@ -128,12 +126,11 @@ class Redis extends Connector
 
     /**
      * 删除一个预备任务
-     * @param $queue
      * @param RedisDispatcher $dispatcher
      */
-    public function deleteReserved($queue, RedisDispatcher $dispatcher)
+    public function deleteReserved(RedisDispatcher $dispatcher)
     {
-        $this->redis->zRem($this->queueName($queue . ':reserved'), $dispatcher->getReserved());
+        $this->redis->zRem($this->queueName() . ':reserved', $dispatcher->getReserved());
     }
 
     /**

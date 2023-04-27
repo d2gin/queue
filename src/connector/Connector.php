@@ -15,21 +15,21 @@ abstract class Connector
 
     abstract public function pop();
 
-    abstract public function pushRaw($payload, $queue = null);
+    abstract public function pushRaw($payload);
 
-    public function push($job, $data = '', $maxTries = 0, $queue = null)
+    public function push($job, $data = '', $maxTries = 0)
     {
         $payload_json = $this->createPayload($job, $data, $maxTries);
-        $this->pushRaw($payload_json, $queue);
+        $this->pushRaw($payload_json);
     }
 
 
-    abstract public function pushDelayRaw($payload, $delay, $queue = null);
+    abstract public function pushDelayRaw($payload, $delay);
 
-    public function pushDelay($job, $data, $delay, $maxTries = 0, $queue = null)
+    public function pushDelay($job, $data, $delay, $maxTries = 0)
     {
         $payload_json = $this->createPayload($job, $data, $maxTries);
-        $this->pushDelayRaw($payload_json, $delay, $queue);
+        $this->pushDelayRaw($payload_json, $delay);
     }
 
     public function availableAt($seconds = 0)

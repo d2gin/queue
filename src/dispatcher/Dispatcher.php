@@ -11,9 +11,10 @@ abstract class Dispatcher
     /* @var Connector $connector */
     protected $connector;
     protected $instance;
-    protected $failed  = false;
-    protected $deleted = false;
-    protected $_data   = [];//
+    protected $failed      = false;
+    protected $deleted     = false;
+    protected $republished = false;
+    protected $_data       = [];//
 
     public function __construct($connector, $raw)
     {
@@ -83,6 +84,11 @@ abstract class Dispatcher
         return $this->deleted;
     }
 
+    public function isRepublish()
+    {
+        return $this->republished;
+    }
+
     public function expiredAt()
     {
         return $this->payload()['expired_at'] ?? null;
@@ -104,11 +110,10 @@ abstract class Dispatcher
      */
     public function republish($delay = null)
     {
-        $payload = $this->payload();
-        // 重置重试次数
-        $payload['retried_times'] = 0;
-        //
-        $method = 'pushRaw';
+        $this->republished        = true;
+        $payload                  = $this->payload();
+        $payload['retried_times'] = 0; // 重置重试的次数
+        $method                   = 'pushRaw';
         $delay && $method = 'pushDelayRaw';
         $params = array_filter([json_encode($payload), $delay]);
         call_user_func_array([$this->connector, $method], $params);

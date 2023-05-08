@@ -62,6 +62,14 @@ class Redis extends Connector
     }
 
     /**
+     * @return bool|int
+     */
+    public function length()
+    {
+        return $this->redis->lLen($this->queueName());
+    }
+
+    /**
      * @param $payload
      * @param $delay
      */

@@ -66,7 +66,10 @@ class Redis extends Connector
      */
     public function length()
     {
-        return $this->redis->lLen($this->queueName());
+        $immediate = $this->redis->lLen($this->queueName()) ?: 0;
+        $reserved  = $this->redis->zCard($this->queueName() . ':reserved') ?: 0;
+        $delay     = $this->redis->zCard($this->queueName() . ':delay') ?: 0;
+        return $immediate + $reserved + $delay;
     }
 
     /**

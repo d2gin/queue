@@ -26,11 +26,15 @@ class Listener
             $process = $this->defaultProcess($driver);
         }
         while (true) {
-            if (is_callable($this->onBeforeDispatch) && call_user_func_array($this->onBeforeDispatch, [$this, $process]) === false) {
-                // 跳过此次调度
-                continue;
-            } else if ($process->isRunning()) {
-                continue;
+            try {
+                if (is_callable($this->onBeforeDispatch) && call_user_func_array($this->onBeforeDispatch, [$this, $process]) === false) {
+                    // 跳过此次调度
+                    continue;
+                } else if ($process->isRunning()) {
+                    continue;
+                }
+            } catch (\Throwable $e) {
+                //
             }
             try {
                 $process->run();
@@ -40,13 +44,16 @@ class Listener
             } catch (\Throwable $e) {
                 echo "[listener] " . $e->getMessage() . PHP_EOL;
             }
-            if ($this->execInterval > 0) {
-                // 支持小数
-                usleep(intval($this->execInterval * 1000000));
-            }
-            if (is_callable($this->onAfterDispatch)) {
-                // 进程调度后
-                call_user_func_array($this->onAfterDispatch, [$this, $process]);
+            try {
+                if ($this->execInterval > 0) {
+                    // 支持小数
+                    usleep(intval($this->execInterval * 1000000));
+                }
+                if (is_callable($this->onAfterDispatch)) {
+                    // 进程调度后
+                    call_user_func_array($this->onAfterDispatch, [$this, $process]);
+                }
+            } catch (\Throwable $e) {
             }
         }
     }

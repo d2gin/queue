@@ -15,6 +15,8 @@ class Listener
     protected $process;
     public    $makeAutoload = true; // 自定义消费进程是否追加composer自动加载
     public    $execInterval = 1;    // 进程调度间隔 默认是1秒 允许小数
+    public    $onBeforeDispatch;    // 进程调度前的事件
+    public    $onAfterDispatch;     // 进程调度后的事件
 
     public function run($driver = 'redis')
     {
@@ -24,20 +26,27 @@ class Listener
             $process = $this->defaultProcess($driver);
         }
         while (true) {
-            if ($process->isRunning()) continue;
+            if (is_callable($this->onBeforeDispatch) && call_user_func_array($this->onBeforeDispatch, [$this, $process]) === false) {
+                // 跳过此次调度
+                continue;
+            } else if ($process->isRunning()) {
+                continue;
+            }
             try {
                 $process->run();
                 $output = $process->getOutput();
                 echo $output;
                 $process->stop();
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 echo "[listener] " . $e->getMessage() . PHP_EOL;
             }
-            if ($this->execInterval <= 0) {
-                continue;
-            } else {
+            if ($this->execInterval > 0) {
                 // 支持小数
                 usleep(intval($this->execInterval * 1000000));
+            }
+            if (is_callable($this->onAfterDispatch)) {
+                // 进程调度后
+                call_user_func_array($this->onAfterDispatch, [$this, $process]);
             }
         }
     }

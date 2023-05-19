@@ -59,8 +59,8 @@ abstract class Dispatcher
     public function fail(\Throwable $e)
     {
         $this->failed = true;
+        $payload = $this->payload();
         if (method_exists($this->instance, 'onFail')) {
-            $payload = $this->payload();
             try {
                 $this->instance->onFail($this, $payload['data'], $e);
             } catch (\Throwable $e) {

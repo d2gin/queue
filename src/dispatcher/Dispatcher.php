@@ -59,7 +59,7 @@ abstract class Dispatcher
     public function fail(\Throwable $e)
     {
         $this->failed = true;
-        $payload = $this->payload();
+        $payload      = $this->payload();
         if (method_exists($this->instance, 'onFail')) {
             try {
                 $this->instance->onFail($this, $payload['data'], $e);
@@ -149,7 +149,7 @@ abstract class Dispatcher
 
     public function __get($name)
     {
-        return $this->_data[$name];
+        return $this->_data[$name] ?? null;
     }
 
 }

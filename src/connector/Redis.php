@@ -16,6 +16,7 @@ class Redis extends Connector
     ];
     /* @var \Redis $redis */
     public $redis;
+    public $name; // 队列名称
 
     public function __construct($config = [])
     {
@@ -164,11 +165,10 @@ class Redis extends Connector
 
     /**
      * 队列key
-     * @param string $name
      * @return string
      */
-    protected function queueName($name = '')
+    protected function queueName()
     {
-        return "icy8:queue:" . ($name ?: $this->defaultName);
+        return "icy8:queue:" . ($this->name ?: $this->defaultName);
     }
 }

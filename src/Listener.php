@@ -27,10 +27,10 @@ class Listener
         }
         while (true) {
             try {
-                if (is_callable($this->onBeforeDispatch) && call_user_func_array($this->onBeforeDispatch, [$this, $process]) === false) {
-                    // 跳过此次调度
+                if ($process->isRunning()) {
                     continue;
-                } else if ($process->isRunning()) {
+                } else if (is_callable($this->onBeforeDispatch) && call_user_func_array($this->onBeforeDispatch, [$this, $process]) === false) {
+                    // 跳过此次调度
                     continue;
                 }
             } catch (\Throwable $e) {

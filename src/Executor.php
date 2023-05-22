@@ -33,6 +33,14 @@ class Executor
         $id     = $dispatcher->getId();
         $output = new Output();
         try {
+            // fatal error
+            register_shutdown_function(function () use ($dispatcher, $output) {
+                $error = error_get_last();
+                if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+                    $dispatcher->fail(new \Exception($error['message']));
+                    $output->error("fatal error " . $dispatcher->getId());
+                }
+            });
             $this->whenJobInvalidate($dispatcher);
             $dispatcher->dispatch();
             $output->info("success {$id}");

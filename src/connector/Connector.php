@@ -8,6 +8,7 @@ abstract class Connector
 {
     protected $retryInterval = 1;// 默认1秒后重试
     protected $config        = [];
+    public $name; // 队列名称
 
     public function __construct()
     {

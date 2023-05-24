@@ -16,7 +16,6 @@ class Redis extends Connector
     ];
     /* @var \Redis $redis */
     public $redis;
-    public $name; // 队列名称
 
     public function __construct($config = [])
     {

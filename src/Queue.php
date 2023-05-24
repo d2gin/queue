@@ -44,4 +44,12 @@ class Queue
         // @todo $deley参数可能会带来歧义，但对$data可选操作会更友好
         $this->connector->pushDelay($job, $data, $deley, $maxTries);
     }
+
+    /**
+     * @return Connector
+     */
+    public function getConnector()
+    {
+        return $this->connector;
+    }
 }

@@ -95,8 +95,10 @@ class Redis extends Connector
         // 添加一个预备任务，就是即将重试的任务，会排在马上要执行的延时任务之后
         $reserved = json_decode($payload, true);
         $reserved['retried_times']++;
-        $reserved = json_encode($reserved);
-        $this->redis->zAdd($this->queueName() . ':reserved', $this->availableAt($this->retryInterval), $reserved);
+        if ($reserved['max_retried_times'] >= $reserved['retried_times']) {
+            $reserved = json_encode($reserved);
+            $this->redis->zAdd($this->queueName() . ':reserved', $this->availableAt($this->retryInterval), $reserved);
+        }
         return new RedisDispatcher($this, $payload, $reserved);
     }
 

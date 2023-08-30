@@ -42,6 +42,7 @@ abstract class Dispatcher
                 }
             }
             $this->instance->{$method}($this, $data);
+            $this->delete();
             if (method_exists($this->instance, 'onFinish')) {
                 try {
                     $this->instance->onFinish($this, $data);

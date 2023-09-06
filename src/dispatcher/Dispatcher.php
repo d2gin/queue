@@ -61,6 +61,16 @@ abstract class Dispatcher
     {
         $this->failed = true;
         $payload      = $this->payload();
+        // 重试
+        if ($this->retriedTimes() < $this->maxRetriedTimes()) {
+            $this->setRetriedTimes($this->retriedTimes() + 1);
+            $payload = $this->payload();
+            $this->republish($payload['delay'] ?? 0, true);
+            //
+            if ($this->retriedTimes() >= $this->maxRetriedTimes()) {
+                $this->republished = false;
+            }
+        }
         if (method_exists($this->instance, 'onFail')) {
             try {
                 $this->instance->onFail($this, $payload['data'], $e);
@@ -97,24 +107,34 @@ abstract class Dispatcher
 
     public function retriedTimes()
     {
-        return $this->payload()['retried_times'] ?? null;
+        return $this->payload()['retried_times'] ?? 0;
+    }
+
+    protected function setRetriedTimes($times)
+    {
+        $payload                  = $this->payload();
+        $payload['retried_times'] = $times;
+        $this->raw                = json_encode($payload);
     }
 
     public function maxRetriedTimes()
     {
-        return $this->payload()['max_retried_times'] ?? null;
+        return $this->payload()['max_retried_times'] ?? 0;
     }
 
     /**
      * 重新发布当前任务
      * @param mixed $delay
+     * @param bool $inheritRetriedTimes
      */
-    public function republish($delay = null)
+    public function republish($delay = null, $inheritRetriedTimes = false)
     {
-        $this->republished        = true;
-        $payload                  = $this->payload();
-        $payload['retried_times'] = 0; // 重置重试的次数
-        $method                   = 'pushRaw';
+        $this->republished = true;
+        $payload           = $this->payload();
+        if (!$inheritRetriedTimes) {
+            $payload['retried_times'] = 0; // 重置重试的次数
+        }
+        $method = 'pushRaw';
         $delay && $method = 'pushDelayRaw';
         $params = array_filter([json_encode($payload), $delay]);
         call_user_func_array([$this->connector, $method], $params);

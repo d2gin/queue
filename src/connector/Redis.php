@@ -92,14 +92,16 @@ class Redis extends Connector
         if (!$payload) {
             return;
         }
+        // @todo 不再使用预备任务来调度重试
         // 添加一个预备任务，就是即将重试的任务，会排在马上要执行的延时任务之后
-        $reserved = json_decode($payload, true);
-        $reserved['retried_times']++;
-        if ($reserved['max_retried_times'] >= $reserved['retried_times']) {
-            $reserved = json_encode($reserved);
-            $this->redis->zAdd($this->queueName() . ':reserved', $this->availableAt($this->retryInterval), $reserved);
-        }
-        return new RedisDispatcher($this, $payload, $reserved);
+//        $reserved = json_decode($payload, true);
+//        $reserved['retried_times']++;
+//        if ($reserved['max_retried_times'] >= $reserved['retried_times']) {
+//            $reserved = json_encode($reserved);
+//            $this->redis->zAdd($this->queueName() . ':reserved', $this->availableAt($this->retryInterval), $reserved);
+//        }
+//        return new RedisDispatcher($this, $payload, $reserved);
+        return new RedisDispatcher($this, $payload);
     }
 
     /**

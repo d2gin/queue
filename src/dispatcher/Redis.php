@@ -5,10 +5,21 @@ class Redis extends Dispatcher
 {
     protected $reserved;
 
-    public function __construct($connector, $raw, $reserved)
+//    public function __construct($connector, $raw, $reserved)
+//    {
+//        parent::__construct($connector, $raw);
+//        $this->reserved = $reserved;
+//    }
+
+    /**
+     * 不再使用预备任务来调度重试
+     * Redis constructor.
+     * @param $connector
+     * @param $raw
+     */
+    public function __construct($connector, $raw)
     {
         parent::__construct($connector, $raw);
-        $this->reserved = $reserved;
     }
 
     /**
@@ -18,7 +29,7 @@ class Redis extends Dispatcher
     {
         parent::delete();
         // 同时将预备任务删掉，避免异常导致无限重试
-        $this->connector->deleteReserved($this);
+        //$this->connector->deleteReserved($this);
     }
 
     /**

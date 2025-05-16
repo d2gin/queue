@@ -8,7 +8,7 @@ abstract class Connector
 {
     protected $retryInterval = 1;// 默认1秒后重试
     protected $config        = [];
-    public $name; // 队列名称
+    public    $name; // 队列名称
 
     public function __construct()
     {
@@ -64,7 +64,7 @@ abstract class Connector
      */
     public function pushDelay($job, $data, $delay, $maxTries = 0)
     {
-        $payload_json = $this->createPayload($job, $data, $maxTries);
+        $payload_json = $this->createPayload($job, $data, $maxTries, $delay);
         $this->pushDelayRaw($payload_json, $delay);
     }
 
@@ -81,10 +81,11 @@ abstract class Connector
      * @param $job
      * @param string $data
      * @param int $maxTries
+     * @param int $delay
      * @return array
      * @throws InvalidPayloadException
      */
-    protected function createPayloadArray($job, $data = '', $maxTries = 0)
+    protected function createPayloadArray($job, $data = '', $maxTries = 0, $delay = 0)
     {
         if (is_array($job) && count($job) !== 2) {
             throw new InvalidPayloadException('`job` must be an array as [classname, method]');
@@ -97,6 +98,7 @@ abstract class Connector
             'data'              => $data,
             'retried_times'     => 0,
             'max_retried_times' => $maxTries,
+            'delay'             => $delay,
             'expire_at'         => 0,// @todo 暂不支持任务过期配置
         ];
     }
@@ -105,12 +107,13 @@ abstract class Connector
      * @param $job
      * @param $data
      * @param int $maxTries
+     * @param int $delay
      * @return false|string
      * @throws InvalidPayloadException
      */
-    protected function createPayload($job, $data, $maxTries = 0)
+    protected function createPayload($job, $data, $maxTries = 0, $delay = 0)
     {
-        $payload      = $this->createPayloadArray($job, $data, $maxTries);
+        $payload      = $this->createPayloadArray($job, $data, $maxTries, $delay);
         $payload_json = json_encode($payload);
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new InvalidPayloadException('payload format error');

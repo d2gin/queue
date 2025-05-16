@@ -12,6 +12,7 @@ abstract class Dispatcher
     protected $connector;
     protected $instance;
     protected $failed      = false;
+    protected $finished    = false;
     protected $deleted     = false;
     protected $republished = false;
     protected $_data       = [];//
@@ -42,18 +43,25 @@ abstract class Dispatcher
                 }
             }
             $this->instance->{$method}($this, $data);
-            if (method_exists($this->instance, 'onFinish')) {
-                try {
-                    $this->instance->onFinish($this, $data);
-                } catch (\Throwable $e) {
-                }
-            }
+            $this->finish();
         }
     }
 
     public function delete()
     {
         $this->deleted = true;
+    }
+
+    public function finish()
+    {
+        $this->finished = true;
+        $payload        = $this->payload();
+        if (method_exists($this->instance, 'onFinish')) {
+            try {
+                $this->instance->onFinish($this, $data);
+            } catch (\Throwable $e) {
+            }
+        }
     }
 
     public function fail(\Throwable $e)
@@ -66,12 +74,7 @@ abstract class Dispatcher
             } catch (\Throwable $e) {
             }
         }
-        if (method_exists($this->instance, 'onFinish')) {
-            try {
-                $this->instance->onFinish($this, $payload['data']);
-            } catch (\Throwable $e) {
-            }
-        }
+        $this->finish();
     }
 
     public function isFail()
@@ -87,6 +90,11 @@ abstract class Dispatcher
     public function isRepublish()
     {
         return $this->republished;
+    }
+
+    public function isFinished()
+    {
+        return $this->finished;
     }
 
     public function expiredAt()

@@ -36,6 +36,17 @@ class Redis extends Connector
         if (!extension_loaded('redis')) {
             throw  new \Exception('redis extension unload');
         }
+        $this->connect();
+        $this->initialized = true;
+        return $this;
+    }
+
+    /**
+     * 连接Redis
+     * @return void
+     * @throws \RedisException
+     */
+    public function connect() {
         $redis = new \Redis();
         $redis->connect(
             $this->config['host'],
@@ -49,8 +60,6 @@ class Redis extends Connector
             $redis->auth($this->config['password']);
         }
         $this->redis       = $redis;
-        $this->initialized = true;
-        return $this;
     }
 
     /**

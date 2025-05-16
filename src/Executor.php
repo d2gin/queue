@@ -39,9 +39,12 @@ class Executor
                 if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
                     $dispatcher->fail(new \Exception($error['message']));
                     $output->error("fatal error " . $dispatcher->getId());
+                } else if (!$dispatcher->isFinished()) {
+                    $dispatcher->finish();
                 }
             });
             $this->whenJobInvalidate($dispatcher);
+            $output->info("start {$id}");
             $dispatcher->dispatch();
             $output->info("success {$id}");
         } catch (\Throwable $e) {

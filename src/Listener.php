@@ -37,9 +37,9 @@ class Listener
                 //
             }
             try {
-                $process->run();
-                $output = $process->getOutput();
-                echo $output;
+                $process->run(function ($type, $data) {
+                    echo $data;
+                });
                 $process->stop();
             } catch (\Throwable $e) {
                 echo "[listener] " . $e->getMessage() . PHP_EOL;

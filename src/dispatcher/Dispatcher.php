@@ -59,7 +59,7 @@ abstract class Dispatcher
         $payload        = $this->payload();
         if (method_exists($this->instance, 'onFinish')) {
             try {
-                $this->instance->onFinish($this, $payload);
+                $this->instance->onFinish($this, $payload['data'] ?? null);
             } catch (\Throwable $e) {
             }
         }
